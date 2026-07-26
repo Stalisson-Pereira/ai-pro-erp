@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2, ShieldCheck, Building2, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2, ShieldCheck, Building2, Eye, EyeOff, X, PlusCircle, Check } from 'lucide-react';
 import { User as UserType, Language } from '../../types';
 
 interface AuthPageProps {
@@ -147,8 +147,32 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Google Account Selector Modal state
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [showCustomGoogleForm, setShowCustomGoogleForm] = useState(false);
+  const [customGoogleName, setCustomGoogleName] = useState('');
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+
   const safeLang = language && authTexts[language] ? language : 'pt';
   const t = authTexts[safeLang];
+
+  const presetGoogleAccounts = [
+    {
+      name: 'Sthalisson',
+      email: 'sthalissonn@gmail.com',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    },
+    {
+      name: 'Carlos Mendes',
+      email: 'carlos.mendes@gmail.com',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    },
+    {
+      name: 'Contato Empresa',
+      email: 'contato.empresa@gmail.com',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+    },
+  ];
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,20 +192,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }, 600);
   };
 
-  const handleGoogleAuth = () => {
+  const handleOpenGoogleModal = () => {
+    setShowGoogleModal(true);
+    setShowCustomGoogleForm(false);
+  };
+
+  const handleSelectGoogleAccount = (acc: { name: string; email: string; avatar?: string }) => {
     setIsLoading(true);
+    setShowGoogleModal(false);
+
     setTimeout(() => {
       setIsLoading(false);
       const googleUser: UserType = {
         id: `u_google_${Date.now()}`,
-        name: 'Gestor Google ERP',
-        email: 'gestor@erpai.pro',
+        name: acc.name,
+        email: acc.email,
         role: 'admin',
         companyId: 'comp_1',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        avatarUrl: acc.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       };
       onLogin(googleUser);
-    }, 800);
+    }, 700);
+  };
+
+  const handleCustomGoogleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customGoogleEmail) return;
+
+    handleSelectGoogleAccount({
+      name: customGoogleName.trim() || customGoogleEmail.split('@')[0] || 'Usuário Google',
+      email: customGoogleEmail.includes('@') ? customGoogleEmail : `${customGoogleEmail}@gmail.com`,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    });
   };
 
   const handleDemoLogin = () => {
@@ -201,7 +243,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen w-full flex flex-col md:flex-row bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-white relative">
       {/* LEFT SIDE: Brand Hero Canvas (Hidden on small mobile, visible on md+) */}
       <div className="relative hidden md:flex md:w-1/2 lg:w-7/12 flex-col justify-between p-8 lg:p-14 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 overflow-hidden">
         {/* Background ambient lighting effects */}
@@ -305,9 +347,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {/* Google SSO Button */}
           <button
             type="button"
-            onClick={handleGoogleAuth}
+            onClick={handleOpenGoogleModal}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700/80 text-white font-semibold text-sm transition-all hover:border-slate-600 active:scale-[0.99] shadow-sm"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700/80 text-white font-semibold text-sm transition-all hover:border-slate-600 active:scale-[0.99] shadow-sm cursor-pointer"
           >
             {/* Google Colorful G SVG Logo */}
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -421,7 +463,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-70 mt-2"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-70 mt-2 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 fill-slate-950 text-slate-950" />
               <span>{isLoading ? 'Carregando...' : isSignUp ? t.signupSubmit : t.loginSubmit}</span>
@@ -433,7 +475,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={handleDemoLogin}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{t.demoAccess}</span>
             </button>
@@ -445,13 +487,151 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="font-bold text-emerald-400 hover:underline ml-1"
+              className="font-bold text-emerald-400 hover:underline ml-1 cursor-pointer"
             >
               {isSignUp ? t.loginLink : t.signUpLink}
             </button>
           </div>
         </div>
       </div>
+
+      {/* GOOGLE ACCOUNT SELECTOR MODAL DIALOG */}
+      {showGoogleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl text-slate-900 dark:text-slate-100 relative">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowGoogleModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Google Branding Header */}
+            <div className="text-center mb-6 pt-2">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <svg className="w-6 h-6" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Fazer login com o Google
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Escolha uma conta para continuar para o <strong className="text-emerald-500">ERP AI PRO</strong>
+              </p>
+            </div>
+
+            {/* List of accounts or Custom Email Form */}
+            {!showCustomGoogleForm ? (
+              <div className="space-y-2.5 mb-6">
+                {presetGoogleAccounts.map((acc, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectGoogleAccount(acc)}
+                    className="w-full flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all text-left group"
+                  >
+                    <img
+                      src={acc.avatar}
+                      alt={acc.name}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/30 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors truncate">
+                        {acc.name}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {acc.email}
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors shrink-0" />
+                  </button>
+                ))}
+
+                {/* Option to use another Google email */}
+                <button
+                  type="button"
+                  onClick={() => setShowCustomGoogleForm(true)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-slate-600 dark:text-slate-300 hover:text-emerald-500 transition-colors text-left text-xs font-semibold"
+                >
+                  <PlusCircle className="w-5 h-5 text-slate-400 hover:text-emerald-500 shrink-0" />
+                  <span>Usar outra conta de e-mail do Google</span>
+                </button>
+              </div>
+            ) : (
+              /* Custom Google Email Input Form */
+              <form onSubmit={handleCustomGoogleSubmit} className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Seu Nome Completo
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customGoogleName}
+                    onChange={(e) => setCustomGoogleName(e.target.value)}
+                    placeholder="Ex: Gabriel Silva"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    E-mail da Conta Google
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={customGoogleEmail}
+                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                    placeholder="seu.email@gmail.com"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomGoogleForm(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-colors flex items-center gap-1.5"
+                  >
+                    <span>Continuar com Google</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Modal Terms Footer */}
+            <div className="text-[11px] text-center text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/80 pt-4">
+              Para continuar, o Google compartilhará seu nome, endereço de e-mail e foto do perfil com o ERP AI PRO.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
