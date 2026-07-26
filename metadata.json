@@ -1,0 +1,6 @@
+{
+  "name": "ERP AI PRO",
+  "description": "Plataforma SaaS Inteligente de Gestão, CRM, Orçamentos, Contratos e Finanças com Agente de IA Executável",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
