@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Company, Client, Quote, Contract, FinancialTransaction,
-  ProductItem, CalendarEvent, AuditLog, Language, PipelineStage
+  ProductItem, CalendarEvent, AuditLog, Language, PipelineStage, User
 } from './types';
 import { initialCompanies, initialClients, initialQuotes, initialContracts, initialTransactions, initialInventory, initialCalendarEvents, initialAuditLogs } from './data/initialData';
 import { getStoredData, setStoredData } from './lib/storage';
@@ -10,6 +10,7 @@ import { getStoredData, setStoredData } from './lib/storage';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { AIAgentDrawer } from './components/ai/AIAgentDrawer';
+import { AuthPage } from './components/auth/AuthPage';
 
 // Module Views
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -42,6 +43,26 @@ export function App() {
     const saved = localStorage.getItem('erp_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+  // Authentication & User Session State
+  const [currentUser, setCurrentUser] = useState<User>(() => {
+    const saved = localStorage.getItem('erp_auth_user');
+    return saved ? JSON.parse(saved) : {
+      id: 'u_1',
+      name: 'Gestor Principal',
+      email: 'admin@erpai.pro',
+      role: 'admin',
+      companyId: 'comp_1',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+    };
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const saved = localStorage.getItem('erp_authenticated');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Mobile Navigation Drawer State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Data Collections (persisted via LocalStorage)
   const [companies, setCompanies] = useState<Company[]>(() => getStoredData('companies', initialCompanies));
@@ -290,6 +311,31 @@ export function App() {
     logAudit(`Contrato ${newContract.number} gerado`, 'Contratos');
   };
 
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    localStorage.setItem('erp_auth_user', JSON.stringify(user));
+    localStorage.setItem('erp_authenticated', 'true');
+    logAudit(`Login realizado com sucesso por ${user.name}`, 'Autenticação');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.setItem('erp_authenticated', 'false');
+    setIsMobileMenuOpen(false);
+    logAudit(`Logout efetuado`, 'Autenticação');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <AuthPage
+        onLogin={handleLogin}
+        language={language}
+        onSelectLanguage={setLanguage}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Top Navigation Header */}
@@ -298,6 +344,7 @@ export function App() {
         companies={companies}
         selectedCompanyId={selectedCompanyId}
         onSelectCompany={(comp) => setSelectedCompanyId(comp.id)}
+        currentUser={currentUser}
         language={language}
         onSelectLanguage={setLanguage}
         isDarkMode={isDarkMode}
@@ -305,6 +352,8 @@ export function App() {
         onOpenAIAgent={() => setIsAIAgentOpen(true)}
         onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
         onOpenPlans={() => setIsPlansModalOpen(true)}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        onLogout={handleLogout}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -314,6 +363,10 @@ export function App() {
           onNavigateTab={setActiveTab}
           language={language}
           onOpenAIAgent={() => setIsAIAgentOpen(true)}
+          isOpenMobile={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* Main Content Viewport */}

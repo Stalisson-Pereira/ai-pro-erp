@@ -85,7 +85,7 @@ export const CRMKanban: React.FC<CRMKanbanProps> = ({
       </div>
 
       {/* Kanban Board Columns Container */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
+      <div className="flex md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
         {stages.map((st) => {
           const stageClients = filteredClients.filter((c) => c.stage === st.id);
           const stageTotal = getStageTotal(st.id);

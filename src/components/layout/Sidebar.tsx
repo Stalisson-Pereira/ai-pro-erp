@@ -1,9 +1,9 @@
 import React from 'react';
 import {
   LayoutDashboard, Kanban, Users, FileText, FileCheck, DollarSign,
-  Package, Calendar, FileSearch, ShieldAlert, CreditCard, Sparkles, X
+  Package, Calendar, FileSearch, ShieldAlert, CreditCard, Sparkles, X, LogOut
 } from 'lucide-react';
-import { Language } from '../../types';
+import { Language, User as UserType } from '../../types';
 import { translations } from '../../lib/i18n';
 
 export type ActiveTab =
@@ -29,6 +29,8 @@ interface SidebarProps {
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   onOpenAIAgent?: () => void;
+  currentUser?: UserType;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -41,6 +43,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile = false,
   onCloseMobile,
   onOpenAIAgent,
+  currentUser,
+  onLogout,
 }) => {
   const safeLang = language && translations[language] ? language : 'pt';
   const t = translations[safeLang] || translations.pt;
@@ -142,13 +146,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Footer System Status */}
-      <div className="p-4 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
-        <span>ERP AI PRO v2.5</span>
-        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          Online
-        </span>
+      {/* Footer System Status & Logout */}
+      <div className="p-3 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 truncate">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+          <span className="truncate text-slate-300 font-medium">{currentUser?.name || 'Gestor Admin'}</span>
+        </div>
+
+        {onLogout && (
+          <button
+            type="button"
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              onLogout();
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-rose-950/60 hover:text-rose-400 text-slate-400 transition-colors shrink-0"
+            title="Sair da Conta"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold">Sair</span>
+          </button>
+        )}
       </div>
     </div>
   );

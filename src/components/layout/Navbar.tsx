@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Building2, Search, Globe, Moon, Sun, Sparkles, ChevronDown, Check, ShieldCheck
+  Building2, Search, Globe, Moon, Sun, Sparkles, ChevronDown, Check, ShieldCheck, Menu, LogOut, User as UserIcon
 } from 'lucide-react';
 import { Company, Language, User as UserType } from '../../types';
 import { translations } from '../../lib/i18n';
@@ -21,6 +21,8 @@ interface NavbarProps {
   onOpenGlobalSearch?: () => void;
   onOpenAIAgent?: () => void;
   onOpenPlans?: () => void;
+  onToggleMobileMenu?: () => void;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -39,9 +41,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenGlobalSearch,
   onOpenAIAgent,
   onOpenPlans,
+  onToggleMobileMenu,
+  onLogout,
 }) => {
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setShowCompanyDropdown(false);
         setShowLangDropdown(false);
+        setShowUserDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -95,9 +101,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header ref={navRef} className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between transition-colors">
-      {/* Left: Company Selector & App Title */}
-      <div className="flex items-center gap-4">
+    <header ref={navRef} className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between transition-colors">
+      {/* Left: Mobile Drawer Hamburger & Company Selector */}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Mobile Sidebar Hamburger Toggle */}
+        <button
+          type="button"
+          onClick={onToggleMobileMenu}
+          className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          title="Menu de Navegação"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* Company Switcher Dropdown */}
         <div className="relative">
           <button
@@ -264,17 +280,82 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* User Profile Avatar */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-          <img
-            src={activeUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
-            alt={activeUser.name || 'Usuário'}
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-800"
-          />
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{activeUser.name || 'Gestor'}</div>
-            <div className="text-[10px] text-slate-400 capitalize">{activeUser.role || 'Admin'}</div>
-          </div>
+        {/* User Profile Avatar & Dropdown */}
+        <div className="relative pl-1 border-l border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUserDropdown(!showUserDropdown);
+              setShowCompanyDropdown(false);
+              setShowLangDropdown(false);
+            }}
+            className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <img
+              src={activeUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
+              alt={activeUser.name || 'Usuário'}
+              className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-800 shrink-0"
+            />
+            <div className="hidden lg:block text-left">
+              <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{activeUser.name || 'Gestor'}</div>
+              <div className="text-[10px] text-slate-400 capitalize">{activeUser.role || 'Admin'}</div>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+          </button>
+
+          {/* Quick Direct Logout Button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onLogout) onLogout();
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-all text-xs font-semibold active:scale-95"
+            title="Sair da Conta (Logout)"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Sair</span>
+          </button>
+
+          {showUserDropdown && (
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl py-2 z-50 text-xs">
+              <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="font-bold text-slate-900 dark:text-slate-100 text-sm truncate">{activeUser.name}</div>
+                <div className="text-slate-400 truncate text-[11px]">{activeUser.email}</div>
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                  Plano {activeCompany.plan || 'PRO'}
+                </span>
+              </div>
+
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    handlePlans();
+                  }}
+                  className="w-full text-left px-3 py-2 flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <Building2 className="w-4 h-4 text-blue-500" />
+                  <span>Gerenciar Empresas & Planos</span>
+                </button>
+              </div>
+
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    if (onLogout) onLogout();
+                  }}
+                  className="w-full text-left px-3 py-2 flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors font-semibold"
+                >
+                  <LogOut className="w-4 h-4 text-rose-500" />
+                  <span>Sair da Conta (Logout)</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
